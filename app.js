@@ -61,15 +61,22 @@ document.addEventListener('DOMContentLoaded', checkFanDetailsInLocalStorage);
 
 
 const apiKey = 'a6b634036064472eae7203400230208';
+async function getDeviceLocation() {
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(resolve, reject);
+  });
+}
+
 // Function to get the external temperature using the OpenWeatherMap API
 // Function to get the external temperature using the WeatherAPI
 async function getExternalTemperature() {
   try {
     // Replace 'YOUR_API_KEY' with your actual WeatherAPI key
     // Replace 'LATITUDE' and 'LONGITUDE' with the actual GPS coordinates (latitude and longitude) of your location
-    const latitude = 'LATITUDE';
-    const longitude = 'LONGITUDE';
-    const response = await fetch(`https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=London&aqi=ye`);
+    const { coords } = await getDeviceLocation();
+    const { latitude, longitude } = coords;
+    console.log(latitude, longitude);
+    const response = await fetch(`https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${latitude},${longitude}`);
     if (!response.ok) {
       throw new Error('Failed to fetch weather data');
     }
@@ -244,3 +251,19 @@ const resetButton = document.getElementById('resetButton');
 resetButton.addEventListener('click', handleFormReset);
 
 // ... (rest of the code remains unchanged)
+
+// update the tempreture every 5 seconds element id temperature
+function updateTemperature() {
+  getExternalTemperature()
+    .then((externalTemperature) => {
+      document.getElementById('temperature').textContent = `${externalTemperature}°C`
+    })
+    .catch((error) => {
+      console.error('Error fetching external temperature:', error);
+    });
+}
+updateTemperature()
+// @note: turn this on to update the tempreture every 1 minute
+// setInterval(() => {
+//   updateTemperature();
+// }, 60000);
